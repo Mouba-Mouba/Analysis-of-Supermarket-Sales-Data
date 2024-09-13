@@ -1,0 +1,173 @@
+# **Assignment 3**
+
+### **Step 1: Install and Load Packages**
+
+```{r}
+# Install the necessary packages if not already installed
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("corrplot")
+install.packages("dplyr")
+
+# Load the libraries
+library(conflicted)
+library(tidyverse)
+library(ggplot2)
+library(corrplot)
+library(dplyr)
+```
+
+### **Step 2: Load the Dataset**
+
+```{r}
+# Load the dataset
+supermarket_sales <- read.csv("C:\\Users\\User\\OneDrive - International Islamic University Malaysia\\Documents\\Mater courses\\Sem 1\\TTTR6124 STATISTICAL METHODS FOR DATA ANALYTICS\\Assignments\\supermarket_sales.csv")
+
+# View the first few rows of the dataset
+head(supermarket_sales)
+```
+
+### Step 3: Data Analysis
+
+#### Descriptive Analysis
+
+1.  Summary Statistics
+
+2.  Sales Distribution by Branch, City, Product Line, and Customer Demographics
+
+```{r}
+# Summary statistics for sales and quantities
+summary(supermarket_sales$Total)
+summary(supermarket_sales$Quantity)
+
+# Sales distribution by branch
+ggplot(supermarket_sales, aes(x = Branch, y = Total)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Sales Distribution by Branch")
+
+# Sales distribution by city
+ggplot(supermarket_sales, aes(x = City, y = Total)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Sales Distribution by City")
+
+# Sales distribution by product line
+ggplot(supermarket_sales, aes(x = Product.line, y = Total)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Sales Distribution by Product Line")
+
+# Sales distribution by customer demographics
+ggplot(supermarket_sales, aes(x = Gender, y = Total)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Sales Distribution by Gender")
+
+# Sales distribution by customer type
+ggplot(supermarket_sales, aes(x = Customer.type, y = Total)) +
+  geom_boxplot() +
+  theme_minimal() +
+  ggtitle("Sales Distribution by Customer Type")
+```
+
+#### Inferential Analysis
+
+1.  ANOVA to Compare Sales Between Different Branches
+
+2.  Regression Analysis
+
+```{r}
+# Check the column names in the dataset
+colnames(supermarket_sales)
+```
+
+```{r}
+# ANOVA to compare sales between branches
+anova_result <- aov(Total ~ Branch, data = supermarket_sales)
+summary(anova_result)
+
+# ANOVA to compare sales among product lines
+anova_result_product <- aov(Total ~ Product.line, data = supermarket_sales)
+summary(anova_result_product)
+```
+
+```{r}
+# Simple Linear Regression to explore the relationship between sales and other variables
+regression_result <- lm(Total ~ Quantity + Unit.price + Tax.5. + cogs + gross.income, data = supermarket_sales)
+
+# Summary of the regression model
+summary(regression_result)
+
+# Residuals Plot
+ggplot(data = supermarket_sales, aes(x = predict(regression_result), y = residuals(regression_result))) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  theme_minimal() +
+  ggtitle("Residuals vs Fitted Plot") +
+  xlab("Fitted Values") +
+  ylab("Residuals")
+
+# Predicted vs Actual Plot
+ggplot(data = supermarket_sales, aes(x = predict(regression_result), y = Total)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  theme_minimal() +
+  ggtitle("Predicted vs Actual Plot") +
+  xlab("Predicted Values") +
+  ylab("Actual Values")
+```
+
+#### Visualization
+
+1.  Histogram of Total Sales
+
+2.  Bar Chart of Sales by Branch
+
+3.  Line Chart of Sales Over Time
+
+4.  Correlation Heatmap
+
+```{r}
+# Histogram of Total Sales
+ggplot(supermarket_sales, aes(x = Total)) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black", alpha = 0.7) +
+  theme_minimal() +
+  ggtitle("Histogram of Total Sales") +
+  xlab("Total Sales") +
+  ylab("Frequency")
+
+# Bar chart of Sales by Branch
+ggplot(supermarket_sales, aes(x = Branch, y = Total, fill = Branch)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  ggtitle("Total Sales by Branch") +
+  xlab("Branch") +
+  ylab("Total Sales")
+
+# Convert Date column to Date type if not already in that format
+supermarket_sales$Date <- as.Date(supermarket_sales$Date, format = "%m/%d/%Y")
+
+# Line chart of Sales Over Time
+ggplot(supermarket_sales, aes(x = Date, y = Total)) +
+  geom_line(color = "blue") +
+  theme_minimal() +
+  ggtitle("Sales Over Time") +
+  xlab("Date") +
+  ylab("Total Sales")
+
+# Select numeric columns for correlation matrix
+numeric_columns <- supermarket_sales %>% select(where(is.numeric))
+
+# Remove columns with zero standard deviation
+numeric_columns <- numeric_columns %>% select_if(~ sd(.) != 0)
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(numeric_columns, use = "complete.obs")
+
+# Plot the correlation heatmap
+corrplot(correlation_matrix, method = "color", type = "upper", 
+         tl.col = "black", tl.srt = 45, 
+         addCoef.col = "black", number.cex = 0.7, 
+         col = colorRampPalette(c("red", "white", "blue"))(200))
+```
